@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f5d50">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Studie">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Straßenstudie — Kommunikation und mimische Resonanz</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f6f6f4; --card:#fff; --ink:#1a1a18; --mut:#6b6b66; --line:#e2e2dd;
+  --acc:#2f5d50; --accL:#e8f0ed; --a:#2f5d50; --b:#8a4b2a; --bL:#f6ece5;
+  --warn:#8a4b2a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding:0 0 env(safe-area-inset-bottom);
+}
+.wrap{max-width:560px;margin:0 auto;padding:14px 14px 90px}
+h1{font-size:19px;margin:4px 0 2px;letter-spacing:-.01em}
+.sub{color:var(--mut);font-size:13px;margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+button{font:inherit;cursor:pointer;border:none;border-radius:12px}
+.btn{display:block;width:100%;padding:16px;background:var(--acc);color:#fff;font-weight:600;font-size:17px}
+.btn:active{opacity:.85}
+.btn.ghost{background:var(--card);color:var(--ink);border:1.5px solid var(--line);font-weight:500}
+.btn.sm{padding:11px;font-size:15px}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+/* Fortschritt */
+.stats{display:flex;gap:10px;margin-bottom:12px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+.stat b{display:block;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.stat.a b{color:var(--a)} .stat.b b{color:var(--b)}
+/* Gruppenbanner */
+.grp{border-radius:14px;padding:14px 16px;margin-bottom:12px;font-weight:600;display:flex;align-items:center;gap:10px}
+.grp.A{background:var(--accL);color:var(--a)}
+.grp.B{background:var(--bL);color:var(--b)}
+.grp .tag{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:16px;font-weight:800;flex:none;background:#999}
+.grp.A .tag{background:var(--a)}
+.grp.B .tag{background:var(--b)}
+.grp .tag span{color:#fff}
+/* Vignette */
+.vig{font-size:19px;line-height:1.55;padding:20px;background:#fff;border:1px solid var(--line);border-left:5px solid var(--acc);border-radius:12px;margin-bottom:12px}
+.vig.B{border-left-color:var(--b)}
+.vigadd{display:block;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);font-weight:700;color:var(--b)}
+.hint{font-size:13px;color:var(--mut);margin:0 0 14px;padding:10px 12px;background:#fff;border-radius:10px;border:1px solid var(--line)}
+/* Frage */
+.qn{font-size:12px;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.q{font-size:20px;font-weight:650;line-height:1.3;margin:0 0 14px}
+textarea{
+  width:100%;min-height:150px;padding:14px;font:16px/1.5 inherit;
+  border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);resize:vertical
+}
+textarea:focus{outline:none;border-color:var(--acc)}
+.key{display:inline-block;background:var(--accL);color:var(--acc);font-size:11px;font-weight:700;
+  padding:3px 8px;border-radius:20px;margin-bottom:8px;letter-spacing:.04em}
+/* Kategorien */
+.kgrp{margin-bottom:18px}
+.kgrp h3{font-size:13px;margin:0 0 8px;color:var(--mut);letter-spacing:.05em;text-transform:uppercase}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:10px 14px;border-radius:22px;border:1.5px solid var(--line);background:#fff;
+  font-size:14.5px;color:var(--ink);transition:none}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+/* Felder */
+label.f{display:block;font-size:13px;color:var(--mut);margin:0 0 5px}
+input[type=text]{width:100%;padding:13px;font:16px inherit;border:1.5px solid var(--line);
+  border-radius:11px;background:#fff;color:var(--ink)}
+input[type=text]:focus{outline:none;border-color:var(--acc)}
+/* Liste */
+.item{display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:none}
+.pill{font-size:11px;font-weight:800;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:none;color:#fff}
+.pill.A{background:var(--a)} .pill.B{background:var(--b)}
+.item .t{flex:1;min-width:0}
+.item .t b{font-size:14px;font-weight:600;display:block}
+.item .t span{font-size:12.5px;color:var(--mut);display:block;margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.del{background:none;border:none;color:var(--mut);font-size:19px;padding:4px 8px;flex:none}
+/* Auswertung */
+.bar{margin-bottom:14px}
+.bar .lab{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:5px}
+.bar .lab b{font-weight:600}
+.track{display:flex;height:26px;border-radius:7px;overflow:hidden;background:var(--line)}
+.track .sa{background:var(--a)} .track .sb{background:var(--b)}
+.track i{display:grid;place-items:center;color:#fff;font-size:11.5px;font-weight:700;font-style:normal}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-bottom:16px}
+.legend s{text-decoration:none;display:flex;align-items:center;gap:5px}
+.legend em{width:11px;height:11px;border-radius:3px;display:block;font-style:normal}
+/* Fußleiste */
+.foot{position:fixed;left:0;right:0;bottom:0;background:rgba(246,246,244,.97);
+  backdrop-filter:blur(8px);border-top:1px solid var(--line);
+  padding:11px 14px calc(11px + env(safe-area-inset-bottom))}
+.foot .in{max-width:560px;margin:0 auto}
+.steps{display:flex;gap:4px;margin-bottom:10px}
+.steps i{flex:1;height:3px;border-radius:2px;background:var(--line);display:block}
+.steps i.on{background:var(--acc)}
+.hide{display:none!important}
+.note{font-size:12.5px;color:var(--mut);line-height:1.5}
+.warn{background:#fdf6f1;border:1px solid #ecd9c9;color:var(--warn);padding:11px 13px;
+  border-radius:11px;font-size:13px;margin-bottom:12px}
+.empty{text-align:center;color:var(--mut);padding:30px 10px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ========== START ========== -->
+<div id="sHome">
+  <h1>Straßenstudie</h1>
+  <p class="sub">Kommunikation und mimische Resonanz</p>
+
+  <div class="stats">
+    <div class="stat"><b id="nAll">0</b><span>gesamt</span></div>
+    <div class="stat a"><b id="nA">0</b><span>Gruppe A</span></div>
+    <div class="stat b"><b id="nB">0</b><span>Gruppe B</span></div>
+  </div>
+
+  <div id="nextHint" class="grp A">
+    <div class="tag"><span id="nextL">A</span></div>
+    <div style="font-size:14.5px">Als Nächstes: <b id="nextT">ohne Hinweis</b></div>
+  </div>
+
+  <button class="btn" onclick="startNew()">Neue Befragung starten</button>
+
+  <div class="card" style="margin-top:12px">
+    <div class="row">
+      <button class="btn ghost sm" onclick="go('sList')">Erfasste Fälle</button>
+      <button class="btn ghost sm" onclick="go('sEval')">Auswertung</button>
+    </div>
+  </div>
+
+  <p class="note">Die Gruppe wird automatisch abwechselnd vergeben — nicht selbst zuteilen.
+  Alles wird auf diesem Gerät gespeichert; am Ende als CSV exportieren.</p>
+</div>
+
+<!-- ========== VIGNETTE ========== -->
+<div id="sVig" class="hide">
+  <div id="vigBanner" class="grp A">
+    <div class="tag"><span id="vigL">A</span></div>
+    <div style="font-size:14.5px">Gruppe <b id="vigT">A — ohne Hinweis</b></div>
+  </div>
+  <p class="hint">Dem Gegenüber zum Lesen hinhalten oder wortgleich vorlesen.</p>
+  <div id="vigBox" class="vig">
+    „Stellen Sie sich vor, Sie erzählen jemandem etwas, das Sie belastet.
+    Die Person hört zu, unterbricht nicht und antwortet sachlich auf das,
+    was Sie gesagt haben. Ihr Gesicht verändert sich dabei kaum —
+    kein Mitleid, kein Stirnrunzeln, kein Nicken."
+    <span id="vigAdd" class="vigadd hide">„Die Person hat eine Autismus-Diagnose."</span>
+  </div>
+</div>
+
+<!-- ========== FRAGEN ========== -->
+<div id="sQ" class="hide">
+  <div class="qn" id="qn"></div>
+  <span class="key hide" id="qKey">Kernfrage — möglichst wörtlich</span>
+  <h2 class="q" id="qt"></h2>
+  <textarea id="qa" placeholder="Antwort notieren…"></textarea>
+</div>
+
+<!-- ========== KATEGORIEN ========== -->
+<div id="sKat" class="hide">
+  <h1 style="margin-bottom:3px">Auswertung</h1>
+  <p class="sub">Nach dem Gespräch ankreuzen. Mehrfachauswahl.</p>
+  <div id="katBox"></div>
+  <div style="margin-top:4px">
+    <label class="f">Neue Kategorie, die hier fehlt</label>
+    <input type="text" id="katNeu" placeholder="optional">
+  </div>
+</div>
+
+<!-- ========== KONTEXT ========== -->
+<div id="sMeta" class="hide">
+  <h1 style="margin-bottom:3px">Kontext</h1>
+  <p class="sub">Zum Schluss, zwei Angaben.</p>
+  <div class="card">
+    <label class="f">Ort</label>
+    <input type="text" id="mOrt" placeholder="z. B. Rheinufer, Bahnhofsvorplatz">
+    <div style="height:14px"></div>
+    <label class="f">Altersgruppe (geschätzt)</label>
+    <div class="chips" id="mAlter"></div>
+    <div style="height:16px"></div>
+    <label class="f">Besonderheiten</label>
+    <div class="chips" id="mFlags"></div>
+  </div>
+</div>
+
+<!-- ========== LISTE ========== -->
+<div id="sList" class="hide">
+  <h1>Erfasste Fälle</h1>
+  <p class="sub" id="listSub">—</p>
+  <div class="card" id="listBox"></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn ghost sm" onclick="expCSV()">CSV</button>
+    <button class="btn ghost sm" onclick="expJSON()">JSON</button>
+  </div>
+  <p class="note" style="margin-top:10px">CSV öffnet sich in Excel oder Numbers. JSON ist die vollständige Sicherung.</p>
+</div>
+
+<!-- ========== AUSWERTUNG ========== -->
+<div id="sEval" class="hide">
+  <h1>Auswertung</h1>
+  <p class="sub" id="evalSub">—</p>
+  <div id="evalBox"></div>
+</div>
+
+</div>
+
+<!-- ========== FUSSLEISTE ========== -->
+<div class="foot hide" id="foot">
+  <div class="in">
+    <div class="steps hide" id="steps"></div>
+    <div class="row">
+      <button class="btn ghost sm" id="bBack" onclick="back()">Zurück</button>
+      <button class="btn sm" id="bNext" onclick="next()" style="flex:2">Weiter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Daten ---------- */
+var KEY = 'strassenstudie_v1';
+var QUESTIONS = [
+  {t:'Was würde das bei Ihnen auslösen?', key:false},
+  {t:'Was würden Sie über die Person denken?', key:true},
+  {t:'Was würden Sie tun?', key:false},
+  {t:'Was hätte Ihnen in der Situation geholfen?', key:false},
+  {t:'Woran merken Sie, ob Sie jemanden ansprechen können?', key:false}
+];
+var KAT = [
+  {id:'gef', t:'Gefühl', o:['verwirrt','verunsichert','unverstanden','traurig','wütend','frustriert']},
+  {id:'zus', t:'Zuschreibung', o:['Kälte','Empathielosigkeit','Desinteresse','neutral / kein Urteil','andere Erklärung gesucht']},
+  {id:'slb', t:'Selbstzweifel', o:['„meine Emotion ist falsch"','Bindung angezweifelt','keine Zweifel an sich']},
+  {id:'ver', t:'Verhalten', o:['nachgefragt','Situation verlassen','Bindung beendet','weitergemacht wie bisher']},
+  {id:'auf', t:'Aufwand', o:['Geduld','Zeit','Energie']},
+  {id:'loe', t:'Lösung genannt', o:['Hintergrundwissen / Briefing','Kontext','„Was brauchst du?"','keine genannt']}
+];
+var ALTER = ['bis 25','26–40','41–60','über 60'];
+var FLAGS = ['hatte es eilig','Nachfrage nötig','abgebrochen'];
+
+var db = [], cur = null, step = 0;
+
+function load(){
+  try{ var r = localStorage.getItem(KEY); db = r ? JSON.parse(r) : []; }
+  catch(e){ db = []; }
+  if(!Array.isArray(db)) db = [];
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch(e){ alert('Speichern fehlgeschlagen. Bitte exportieren, bevor du die Seite schließt.'); }
+}
+
+/* ---------- Navigation ---------- */
+var SCREENS = ['sHome','sVig','sQ','sKat','sMeta','sList','sEval'];
+function go(id){
+  SCREENS.forEach(function(s){ document.getElementById(s).classList.add('hide'); });
+  document.getElementById(id).classList.remove('hide');
+  document.getElementById('foot').classList.toggle('hide', id==='sHome');
+  document.getElementById('steps').classList.toggle('hide', !(cur && id!=='sList' && id!=='sEval'));
+  if(id==='sList'){ renderList(); }
+  if(id==='sEval'){ renderEval(); }
+  if(id==='sList'||id==='sEval'){
+    document.getElementById('bBack').textContent='Zur Übersicht';
+    document.getElementById('bNext').classList.add('hide');
+  } else {
+    document.getElementById('bNext').classList.remove('hide');
+  }
+  window.scrollTo(0,0);
+}
+function nextGroup(){ return db.length % 2 === 0 ? 'A' : 'B'; }
+
+function refreshHome(){
+  document.getElementById('nAll').textContent = db.length;
+  document.getElementById('nA').textContent = db.filter(function(d){return d.g==='A';}).length;
+  document.getElementById('nB').textContent = db.filter(function(d){return d.g==='B';}).length;
+  var g = nextGroup();
+  document.getElementById('nextL').textContent = g;
+  document.getElementById('nextT').textContent = g==='A' ? 'ohne Hinweis' : 'mit Hinweis';
+  document.getElementById('nextHint').className = 'grp ' + g;
+}
+
+function startNew(){
+  cur = { id:Date.now(), g:nextGroup(), ts:new Date().toISOString(), a:['','','','',''], k:{}, neu:'', ort:'', alter:'', flags:[] };
+  step = 0;
+  renderStep();
+}
+
+/* Schrittfolge: 0 = Vignette, 1..5 = Fragen, 6 = Kategorien, 7 = Kontext */
+function renderStep(){
+  var tot = 8, s = document.getElementById('steps');
+  s.innerHTML='';
+  for(var i=0;i<tot;i++){ var e=document.createElement('i'); if(i<=step) e.className='on'; s.appendChild(e); }
+
+  document.getElementById('bBack').textContent = step===0 ? 'Abbrechen' : 'Zurück';
+  document.getElementById('bNext').textContent = step===7 ? 'Speichern' : 'Weiter';
+
+  if(step===0){
+    document.getElementById('vigL').textContent = cur.g;
+    document.getElementById('vigT').textContent = cur.g==='A' ? 'A — ohne Hinweis' : 'B — mit Hinweis';
+    document.getElementById('vigBanner').className = 'grp ' + cur.g;
+    document.getElementById('vigBox').className = 'vig ' + cur.g;
+    document.getElementById('vigAdd').classList.toggle('hide', cur.g!=='B');
+    go('sVig');
+  } else if(step>=1 && step<=5){
+    var q = QUESTIONS[step-1];
+    document.getElementById('qn').textContent = 'Frage ' + step + ' von 5';
+    document.getElementById('qt').textContent = q.t;
+    document.getElementById('qKey').classList.toggle('hide', !q.key);
+    document.getElementById('qa').value = cur.a[step-1] || '';
+    go('sQ');
+    setTimeout(function(){ document.getElementById('qa').focus(); }, 80);
+  } else if(step===6){
+    renderKat(); go('sKat');
+  } else if(step===7){
+    renderMeta(); go('sMeta');
+  }
+}
+
+function grab(){
+  if(step>=1 && step<=5) cur.a[step-1] = document.getElementById('qa').value;
+  if(step===6) cur.neu = document.getElementById('katNeu').value;
+  if(step===7) cur.ort = document.getElementById('mOrt').value;
+}
+function next(){
+  grab();
+  if(step===7){ db.push(cur); save(); cur=null; refreshHome(); go('sHome'); return; }
+  step++; renderStep();
+}
+function back(){
+  if(!cur){ go('sHome'); return; }
+  grab();
+  if(step===0){ if(confirm('Befragung verwerfen?')){ cur=null; go('sHome'); } return; }
+  step--; renderStep();
+}
+
+/* ---------- Kategorien ---------- */
+function renderKat(){
+  var box = document.getElementById('katBox'); box.innerHTML='';
+  KAT.forEach(function(g){
+    var d = document.createElement('div'); d.className='kgrp';
+    var h = document.createElement('h3'); h.textContent=g.t; d.appendChild(h);
+    var c = document.createElement('div'); c.className='chips';
+    g.o.forEach(function(o){
+      var b = document.createElement('button');
+      b.className='chip' + ((cur.k[g.id]||[]).indexOf(o)>=0 ? ' on' : '');
+      b.textContent=o;
+      b.onclick=function(){
+        if(!cur.k[g.id]) cur.k[g.id]=[];
+        var i = cur.k[g.id].indexOf(o);
+        if(i>=0) cur.k[g.id].splice(i,1); else cur.k[g.id].push(o);
+        b.classList.toggle('on');
+      };
+      c.appendChild(b);
+    });
+    d.appendChild(c); box.appendChild(d);
+  });
+  document.getElementById('katNeu').value = cur.neu || '';
+}
+
+function renderMeta(){
+  document.getElementById('mOrt').value = cur.ort || '';
+  var a = document.getElementById('mAlter'); a.innerHTML='';
+  ALTER.forEach(function(o){
+    var b=document.createElement('button');
+    b.className='chip'+(cur.alter===o?' on':''); b.textContent=o;
+    b.onclick=function(){
+      cur.alter = (cur.alter===o)?'':o;
+      Array.prototype.forEach.call(a.children,function(x){x.classList.remove('on');});
+      if(cur.alter===o) b.classList.add('on');
+    };
+    a.appendChild(b);
+  });
+  var f = document.getElementById('mFlags'); f.innerHTML='';
+  FLAGS.forEach(function(o){
+    var b=document.createElement('button');
+    b.className='chip'+(cur.flags.indexOf(o)>=0?' on':''); b.textContent=o;
+    b.onclick=function(){
+      var i=cur.flags.indexOf(o);
+      if(i>=0) cur.flags.splice(i,1); else cur.flags.push(o);
+      b.classList.toggle('on');
+    };
+    f.appendChild(b);
+  });
+}
+
+/* ---------- Liste ---------- */
+function renderList(){
+  var box=document.getElementById('listBox'); box.innerHTML='';
+  document.getElementById('listSub').textContent =
+    db.length ? db.length+' Fälle · '+db.filter(function(d){return d.g==='A';}).length+'× A, '+db.filter(function(d){return d.g==='B';}).length+'× B' : 'noch keine Daten';
+  if(!db.length){ box.innerHTML='<div class="empty">Noch nichts erfasst.</div>'; return; }
+  db.slice().reverse().forEach(function(d){
+    var it=document.createElement('div'); it.className='item';
+    var p=document.createElement('div'); p.className='pill '+d.g; p.textContent=d.g;
+    var t=document.createElement('div'); t.className='t';
+    var dt=new Date(d.ts);
+    var b=document.createElement('b');
+    b.textContent = dt.toLocaleDateString('de-DE') + ' · ' + (d.ort||'ohne Ort') + (d.alter?' · '+d.alter:'');
+    var s=document.createElement('span');
+    s.textContent = (d.a[1]||'—').slice(0,70);
+    t.appendChild(b); t.appendChild(s);
+    var x=document.createElement('button'); x.className='del'; x.textContent='×';
+    x.onclick=function(){
+      if(confirm('Diesen Fall löschen?')){
+        db = db.filter(function(z){return z.id!==d.id;});
+        save(); renderList(); refreshHome();
+      }
+    };
+    it.appendChild(p); it.appendChild(t); it.appendChild(x);
+    box.appendChild(it);
+  });
+}
+
+/* ---------- Auswertung ---------- */
+function renderEval(){
+  var box=document.getElementById('evalBox'); box.innerHTML='';
+  var nA=db.filter(function(d){return d.g==='A';}).length;
+  var nB=db.filter(function(d){return d.g==='B';}).length;
+  document.getElementById('evalSub').textContent = nA+'× ohne Hinweis, '+nB+'× mit Hinweis';
+  if(db.length<2){ box.innerHTML='<div class="empty">Ab zwei Fällen wird hier verglichen.</div>'; return; }
+
+  var w=document.createElement('div'); w.className='warn';
+  w.textContent = db.length<20
+    ? 'Bei '+db.length+' Fällen sind das Tendenzen, keine Ergebnisse. Ab etwa 30 lässt sich mehr sagen.'
+    : 'Die Zahlen sind Prozentanteile innerhalb der jeweiligen Gruppe.';
+  box.appendChild(w);
+
+  var lg=document.createElement('div'); lg.className='legend';
+  lg.innerHTML='<s><em style="background:var(--a)"></em>A — ohne Hinweis</s><s><em style="background:var(--b)"></em>B — mit Hinweis</s>';
+  box.appendChild(lg);
+
+  KAT.forEach(function(g){
+    var h=document.createElement('h3');
+    h.style.cssText='font-size:13px;color:var(--mut);letter-spacing:.05em;text-transform:uppercase;margin:18px 0 10px';
+    h.textContent=g.t + (g.id==='zus' ? '  ← Kernmaß' : '');
+    box.appendChild(h);
+    g.o.forEach(function(o){
+      var ca=db.filter(function(d){return d.g==='A' && (d.k[g.id]||[]).indexOf(o)>=0;}).length;
+      var cb=db.filter(function(d){return d.g==='B' && (d.k[g.id]||[]).indexOf(o)>=0;}).length;
+      if(!ca && !cb) return;
+      var pa=nA?Math.round(ca/nA*100):0, pb=nB?Math.round(cb/nB*100):0;
+      var d=document.createElement('div'); d.className='bar';
+      var l=document.createElement('div'); l.className='lab';
+      l.innerHTML='<b>'+o+'</b><span style="color:var(--mut)">'+ca+' / '+cb+'</span>';
+      var tr=document.createElement('div'); tr.className='track';
+      tr.innerHTML='<i class="sa" style="width:'+(pa/2)+'%">'+(pa>9?pa+'%':'')+'</i>'+
+                   '<i class="sb" style="width:'+(pb/2)+'%">'+(pb>9?pb+'%':'')+'</i>';
+      d.appendChild(l); d.appendChild(tr); box.appendChild(d);
+    });
+  });
+}
+
+/* ---------- Export ---------- */
+function dl(name, text, mime){
+  try{
+    var b=new Blob([text],{type:mime}), u=URL.createObjectURL(b);
+    var a=document.createElement('a'); a.href=u; a.download=name; a.click();
+    setTimeout(function(){URL.revokeObjectURL(u);},1500);
+  }catch(e){
+    prompt('Download nicht möglich — Text hier kopieren:', text);
+  }
+}
+function q(s){ return '"'+String(s==null?'':s).replace(/"/g,'""')+'"'; }
+function expCSV(){
+  if(!db.length){ alert('Noch keine Daten.'); return; }
+  var head=['Nr','Gruppe','Zeitpunkt','Ort','Alter','Besonderheiten'];
+  QUESTIONS.forEach(function(x,i){ head.push('F'+(i+1)+' '+x.t); });
+  KAT.forEach(function(g){ head.push(g.t); });
+  head.push('Neue Kategorie');
+  var rows=[head.map(q).join(';')];
+  db.forEach(function(d,i){
+    var r=[i+1,d.g,d.ts,d.ort,d.alter,d.flags.join(' | ')];
+    d.a.forEach(function(x){ r.push(x); });
+    KAT.forEach(function(g){ r.push((d.k[g.id]||[]).join(' | ')); });
+    r.push(d.neu);
+    rows.push(r.map(q).join(';'));
+  });
+  dl('strassenstudie_'+new Date().toISOString().slice(0,10)+'.csv',
+     '﻿'+rows.join('\r\n'), 'text/csv;charset=utf-8');
+}
+function expJSON(){
+  if(!db.length){ alert('Noch keine Daten.'); return; }
+  dl('strassenstudie_'+new Date().toISOString().slice(0,10)+'.json',
+     JSON.stringify({erhebung:'Kommunikation und mimische Resonanz',stand:new Date().toISOString(),faelle:db},null,2),
+     'application/json');
+}
+
+/* ---------- Start ---------- */
+
+/* ---------- Offline ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+load(); refreshHome(); go('sHome');
+</script>
+</body>
+</html>
