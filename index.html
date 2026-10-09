@@ -241,22 +241,26 @@ var QUESTIONS=[
 var KAT=[
  {id:'gef', t:'Wie würden Sie sich fühlen?',
   o:['verwirrt','verunsichert','unverstanden','traurig','wütend','frustriert',
-     'akzeptierend','verständnisvoll','gelassen','neutral — nichts Besonderes']},
+     'Mitleid mit der Person','akzeptierend','verständnisvoll','gelassen','neutral — nichts Besonderes']},
  {id:'zus', t:'Was würden Sie über die Person denken?',
   o:['Kälte','Empathielosigkeit','Desinteresse','Arroganz','Schüchternheit',
      'konzentriert zugehört','neutral — kein Urteil','andere Erklärung gesucht']},
  {id:'slb', t:'Und über sich selbst?',
-  o:['„meine Reaktion ist übertrieben"','an der Beziehung gezweifelt','keine Zweifel an mir']},
+  o:['„meine Reaktion ist übertrieben"','an der Beziehung gezweifelt',
+     'Vertrauen verloren','keine Zweifel an mir']},
  {id:'ver', t:'Was würden Sie tun?',
-  o:['nachfragen','Gespräch weiterführen','Situation verlassen','Kontakt beenden','nichts ändern']},
+  o:['nachfragen','Gespräch weiterführen','Thema gewechselt','Situation verlassen',
+     'Kontakt beenden','nichts ändern']},
  {id:'auf', t:'Was würde es Sie kosten?',
   o:['Geduld','Zeit','Energie','nichts davon']},
  {id:'loe', t:'Was hätte geholfen?',
-  o:['Hintergrundwissen','Kontext','ein offenes Gespräch','„Was brauchst du?"','nichts']}
+  o:['Hintergrundwissen','Kontext','ein offenes Gespräch','eine dritte Person / Vermittlung',
+     'Übung, Gewöhnung','„Was brauchst du?"','nichts']}
 ];
 
 var ALTER=['bis 25','26–40','41–60','über 60','keine Angabe'];
-var FLAGS=['hatte es eilig','Nachfrage nötig','abgebrochen','selbst getippt','von mir notiert'];
+var FLAGS=['hatte es eilig','Nachfrage nötig','Antwort unspezifisch','abgebrochen',
+          'selbst getippt','von mir notiert'];
 
 var db=[], cur=null, step=0;
 
@@ -290,7 +294,7 @@ function refreshHome(){
   document.getElementById('nextHint').className='grp '+g;
 }
 function startNew(){
-  cur={id:Date.now(),g:nextGroup(),ts:new Date().toISOString(),
+  cur={id:Date.now(),v:2,g:nextGroup(),ts:new Date().toISOString(),
        a:['','','','',''],k:{},neu:'',ort:'',alter:'',flags:[]};
   step=0; renderStep();
 }
@@ -468,13 +472,13 @@ function dl(name,text,mime){
 function q(s){ return '"'+String(s==null?'':s).replace(/"/g,'""')+'"'; }
 function expCSV(){
   if(!db.length){alert('Noch keine Daten.');return;}
-  var head=['Nr','Gruppe','Zeitpunkt','Ort','Alter','Besonderheiten'];
+  var head=['Nr','Gruppe','Version','Zeitpunkt','Ort','Alter','Besonderheiten'];
   QUESTIONS.forEach(function(x,i){head.push('F'+(i+1)+' '+x);});
   KAT.forEach(function(g){head.push(g.t);});
   head.push('Ergänzung');
   var rows=[head.map(q).join(';')];
   db.forEach(function(d,i){
-    var r=[i+1,d.g,d.ts,d.ort,d.alter,(d.flags||[]).join(' | ')];
+    var r=[i+1,d.g,(d.v||1),d.ts,d.ort,d.alter,(d.flags||[]).join(' | ')];
     d.a.forEach(function(x){r.push(x);});
     KAT.forEach(function(g){r.push((d.k[g.id]||[]).join(' | '));});
     r.push(d.neu); rows.push(r.map(q).join(';'));
@@ -486,7 +490,7 @@ function expJSON(){
   if(!db.length){alert('Noch keine Daten.');return;}
   dl('erhebung_'+new Date().toISOString().slice(0,10)+'.json',
      JSON.stringify({erhebung:'Kommunikation und mimische Resonanz',
-       stand:new Date().toISOString(),faelle:db},null,2),
+       instrument:'v2 (ab 10.10.2026)',stand:new Date().toISOString(),faelle:db},null,2),
      'application/json;charset=utf-8');
 }
 function impJSON(){
