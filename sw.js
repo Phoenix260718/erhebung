@@ -1,4 +1,4 @@
-const CACHE = 'studie-v7';
+const CACHE = 'studie-v8';
 const FILES = ['./', './index.html', './info.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

@@ -109,12 +109,7 @@ input[type=text]:focus{outline:none;border-color:var(--acc)}
   <p class="sub">Kommunikation und mimische Resonanz</p>
   <div class="stats">
     <div class="stat"><b id="nAll">0</b><span>gesamt</span></div>
-    <div class="stat a"><b id="nA">0</b><span>Gruppe A</span></div>
-    <div class="stat b"><b id="nB">0</b><span>Gruppe B</span></div>
-  </div>
-  <div id="nextHint" class="grp A">
-    <div class="tag"><span id="nextL">A</span></div>
-    <div style="font-size:14.5px">Als Nächstes: <b id="nextT">ohne Hinweis</b></div>
+    <div class="stat"><b id="nHeute">0</b><span>heute</span></div>
   </div>
   <button class="btn" onclick="startNew()">Neue Befragung starten</button>
   <div class="card" style="margin-top:12px">
@@ -123,8 +118,12 @@ input[type=text]:focus{outline:none;border-color:var(--acc)}
       <button class="btn ghost sm" onclick="go('sEval')">Auswertung</button>
     </div>
   </div>
-  <p class="note">Gruppe wird automatisch abwechselnd vergeben. Daten bleiben auf diesem Gerät —
-  nach jedem Erhebungstag exportieren.</p>
+  <p class="note"><b>Erst ansprechen, dann starten.</b> Die Gruppe wird beim Start gezogen und
+  steht vorher nicht fest — damit die Zuteilung die Auswahl der Person nicht beeinflussen kann.
+  Die Besetzung von A und B steht unter „Erfasste Fälle“; nicht unmittelbar vor einer Ansprache
+  nachsehen.</p>
+  <p class="note">Daten bleiben auf diesem Gerät — nach jedem Erhebungstag exportieren,
+  aber <b>nicht löschen</b>.</p>
 </div>
 
 <div id="sHand" class="hide">
@@ -283,18 +282,50 @@ function go(id){
   } else { document.getElementById('bNext').classList.remove('hide'); }
   window.scrollTo(0,0);
 }
-function nextGroup(){ return db.length%2===0?'A':'B'; }
+/* ---------------------------------------------------------------------------
+   Zuteilung — geändert am 11.10.2026
+
+   Vorher hing die Gruppe an db.length (alternierend). Das hatte zwei Fehler:
+   Leeren der Fallliste setzte den Zähler zurück (Stand dadurch A 3 · B 1), und
+   die nächste Gruppe war vor der Ansprache ablesbar.
+
+   Jetzt: Urnenverfahren mit eigenem, dauerhaftem Zähler. Weicht eine Gruppe um
+   zwei Fälle ab, wird zwingend die unterbesetzte vergeben; sonst entscheidet der
+   Zufall. Gebucht wird beim Start der Befragung, nicht beim Speichern — sonst
+   ließe sich die Zuteilung durch Abbrechen steuern.
+--------------------------------------------------------------------------- */
+var AKEY='strassenstudie_zuteilung';
+var Z_START={A:3,B:1};   // tatsächlich vergeben bis 11.10.2026, vor dieser Änderung
+
+function zStand(){
+  try{ var r=JSON.parse(localStorage.getItem(AKEY));
+       if(r&&typeof r.A==='number'&&typeof r.B==='number') return r; }catch(e){}
+  var z={A:Math.max(Z_START.A, db.filter(function(d){return d.g==='A';}).length),
+         B:Math.max(Z_START.B, db.filter(function(d){return d.g==='B';}).length)};
+  try{localStorage.setItem(AKEY,JSON.stringify(z));}catch(e){}
+  return z;
+}
+function zBuchen(g){
+  var z=zStand(); z[g]=(z[g]||0)+1;
+  try{localStorage.setItem(AKEY,JSON.stringify(z));}catch(e){}
+}
+function nextGroup(){
+  var z=zStand();
+  if(z.A-z.B>=2) return 'B';
+  if(z.B-z.A>=2) return 'A';
+  return Math.random()<0.5?'A':'B';
+}
+
 function refreshHome(){
   document.getElementById('nAll').textContent=db.length;
-  document.getElementById('nA').textContent=db.filter(function(d){return d.g==='A';}).length;
-  document.getElementById('nB').textContent=db.filter(function(d){return d.g==='B';}).length;
-  var g=nextGroup();
-  document.getElementById('nextL').textContent=g;
-  document.getElementById('nextT').textContent=g==='A'?'ohne Hinweis':'mit Hinweis';
-  document.getElementById('nextHint').className='grp '+g;
+  var h=new Date().toISOString().slice(0,10);
+  document.getElementById('nHeute').textContent=
+    db.filter(function(d){return (d.ts||'').slice(0,10)===h;}).length;
 }
 function startNew(){
-  cur={id:Date.now(),v:2,g:nextGroup(),ts:new Date().toISOString(),
+  var g=nextGroup();            // erst hier gezogen
+  zBuchen(g);                   // und sofort verbraucht, auch bei Abbruch
+  cur={id:Date.now(),v:2,g:g,ts:new Date().toISOString(),
        a:['','','','',''],k:{},neu:'',ort:'',alter:'',flags:[]};
   step=0; renderStep();
 }
@@ -511,7 +542,14 @@ document.getElementById('impFile').addEventListener('change',function(ev){
       if(!confirm(add.length+' Fälle hinzufügen?'))return;
       db=db.concat(add);
       db.sort(function(x,y){return (x.id||0)-(y.id||0);});
-      save(); renderList(); refreshHome();
+      save();
+      // Zuteilungszähler nachziehen: er darf nie unter dem liegen, was tatsächlich
+      // an Fällen vorliegt — sonst vergäbe die Urne eine schon verbrauchte Gruppe.
+      var z=zStand();
+      z.A=Math.max(z.A, db.filter(function(d){return d.g==='A';}).length);
+      z.B=Math.max(z.B, db.filter(function(d){return d.g==='B';}).length);
+      try{localStorage.setItem(AKEY,JSON.stringify(z));}catch(e){}
+      renderList(); refreshHome();
       alert(add.length+' Fälle eingelesen.');
     }catch(e){ alert('Datei konnte nicht gelesen werden.'); }
   };
